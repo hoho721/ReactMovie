@@ -1,44 +1,59 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './App.css';
 import Movie from './Components/Movie';
 
-const movies = [
-  {
-    title: "Matrix",
-    img: "http://image.cine21.com/resize/cine21/article/2014/1119/17_30_01__546c5509f27c1[H800-].jpg"
-  },
-  {
-    title: "Full Metal Jacket",
-    img: "http://image.cine21.com/resize/cine21/article/2014/1119/17_30_01__546c5509f27c1[H800-].jpg"
-  },
-  {
-    title: "Holla",
-    img: "http://image.cine21.com/resize/cine21/article/2014/1119/17_30_01__546c5509f27c1[H800-].jpg"
-  }
-];
-
-
 class App extends Component {
 
-  state = {
-    greeting: 'Hello'
-  }
+    state = {};
 
-  componentDidMount() {
-  }
+    componentDidMount() {
+        this._fetchMovies('https://yts.am/api/v2/list_movies.json?sort_by=download_count')
+    }
 
-  render() {
-    return (
-        <div className="App">
-          {this.state.greeting}
-          {
-            movies.map((movie, idx) => {
-              return <Movie key={idx} title={movie.title} poster={movie.img}/>
+    _renderMovies = () => {
+        return this.state.movies.map(movie =>
+            <Movie
+                title={movie.title}
+                poster={movie.medium_cover_image}
+                genres={movie.genres}
+                synopsis={movie.synopsis}
+                key={movie.id}/>);
+    };
+
+
+    _fetchMovies = async (url) => {
+        try {
+            let movies = await this._callApi(url);
+            console.log(movies);
+            this.setState({
+                movies
             })
-          }
-        </div>
-    )
-  }
+
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    _callApi = (url) => {
+        return fetch(url)
+            .then(response => response.json())
+            .then(myJson => myJson.data.movies)
+            .catch(err => {
+                console.log(err)
+            });
+    };
+
+
+    render() {
+        const {movies} = this.state;
+        return (
+            <div className={movies ? "App" : "App--loading"}>
+                {
+                    movies ? this._renderMovies() : "Loading"
+                }
+            </div>
+        )
+    }
 }
 
 export default App;
